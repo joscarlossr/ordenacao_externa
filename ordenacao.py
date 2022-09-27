@@ -56,9 +56,11 @@ if __name__ == '__main__':
         ]
 
         i = 0
+        index = 0
         for line in f:
             list_aux.append(int(line.strip()))
-            if len(list_aux) % 3 != 0: continue
+            if len(list_aux) % 3 != 0:
+                continue
 
             order_list(list_aux)
             index = i % 3
@@ -68,9 +70,9 @@ if __name__ == '__main__':
             i += 1
 
         if len(list_aux) > 0:
-            write_to_file(file_handles[-1], list_aux)
+            write_to_file(file_handles[index+1], list_aux)
 
-        # Fecha todos arquivos, e ao mesmo tempo, abre outro handle para leitura
+    # Fecha todos arquivos, e ao mesmo tempo, abre outro handle para leitura
         for i in range(3):
             file_handles[i].close()
             file_handles[i] = open(file_handles[i].name, 'r')
