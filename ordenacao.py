@@ -7,6 +7,9 @@ from line import Line
 
 
 def swap(input_list: list, first_index: int, second_index: int):
+    """
+    Troca as posições de um elemento dentro de uma array, por outra
+    """
     val_primeiro = input_list[first_index]
     val_segundo = input_list[second_index]
     input_list[first_index] = val_segundo
@@ -14,6 +17,9 @@ def swap(input_list: list, first_index: int, second_index: int):
 
 
 def order_list(input_list: list):
+    """
+    Ordena uma lista de até 3 elementos, manualmente.
+    """
     size = len(input_list)
     if size <= 1:
         return input_list
@@ -28,6 +34,9 @@ def order_list(input_list: list):
 
 
 def order_keys(input_list: list):
+    """
+    Ordena uma lista de até 3 elementos da classe Line, manualmente
+    """
     size = len(input_list)
     if size <= 1:
         return input_list
@@ -47,6 +56,9 @@ def order_keys(input_list: list):
 
 
 def clear_folder(folder: str):
+    """
+    Método utilizado para limpar uma pasta
+    """
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         try:
@@ -59,17 +71,48 @@ def clear_folder(folder: str):
 
 
 def write_to_file(handle: IO, input_list: list):
+    """
+    Escreve uma array em um arquivo, onde cada elemento é separado em uma linha
+    """
     stringified = [str(x) for x in input_list]
     handle.write('\n'.join(stringified) + '\n')
+
+
+def sort_buffer_manually(buffer):
+    """
+    Método utilizado para ordenar o buffer final, manualmente, gambiarra
+    """
+    ordered = []
+    i = 0
+    lowest = buffer[0]
+
+    while len(buffer) > 0:
+        if  buffer[i] < lowest:
+            lowest = buffer[i]
+        i += 1
+        if i == len(buffer):
+            ordered.append(lowest)
+            buffer.remove(lowest)
+            if buffer:
+              lowest = buffer[0]
+            i = 0
+    
+    return ordered
+
+
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     results_folder = './resultados'
+    # Limpa a pasta de resultados
     clear_folder(results_folder)
 
+    # Inicia a leitura do arquivo de entrada
     with open('entrada.txt') as f:
         list_aux = []
+
+        # Abre os arquivos de fita
         file_handles = [
             open(f'{results_folder}/fita1.txt', 'w'),
             open(f'{results_folder}/fita2.txt', 'w'),
@@ -80,6 +123,7 @@ if __name__ == '__main__':
         ]
 
         i = 0
+        # Começa a ler o arquivo de entrada e separa cada um nas três fitas iniciais
         for line in f:
             list_aux.append(int(line.strip()))
             if len(list_aux) % 3 != 0:
@@ -92,6 +136,7 @@ if __name__ == '__main__':
             list_aux.clear()
             i += 1
 
+        # Caso tenha esquecido de escrever algum dado, vai e escreve na próxima fita
         if len(list_aux) > 0:
             write_to_file(file_handles[i % 3], list_aux)
 
@@ -136,7 +181,7 @@ if __name__ == '__main__':
 
         fita = open(file_handles[0].name, 'w')
 
-        buffers = [[], [], []]
+        buffer = []
         for i in range(3, 6):
             file = file_handles[i]
             while True:
@@ -144,20 +189,7 @@ if __name__ == '__main__':
                 if line == '':
                     break
 
-                buffers[i-3].append(Line(line, i + 1))
+                buffer.append(int(line.strip()))
 
-        keys = []
-        while True:
-            if len(buffers[0]) == 0 and len(buffers[1]) == 0 and len(buffers[2]) == 0: break
-
-            for i in reversed(range(3)):
-                if len(buffers[i]) == 0:
-                    continue
-
-                keys.append(buffers[i][0])
-
-            order_keys(keys)
-            line = keys[0]
-            write_to_file(fita, [line.value])
-            keys.clear()
-            buffers[line.fita - 6].pop(0)
+        sorted_buffer = sort_buffer_manually(buffer)
+        write_to_file(fita, sorted_buffer)
