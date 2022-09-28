@@ -3,6 +3,8 @@ import shutil
 from typing import IO
 from math import ceil
 
+from line import Line
+
 
 def swap(input_list: list, first_index: int, second_index: int):
     val_primeiro = input_list[first_index]
@@ -12,10 +14,10 @@ def swap(input_list: list, first_index: int, second_index: int):
 
 
 def order_list(input_list: list):
-    tamanho = len(input_list)
-    if tamanho <= 1:
+    size = len(input_list)
+    if size <= 1:
         return input_list
-    if tamanho == 2:
+    if size == 2:
         return [min(input_list), max(input_list)]
     if input_list[0] > input_list[1]:
         swap(input_list, 0, 1)
@@ -25,24 +27,23 @@ def order_list(input_list: list):
         swap(input_list, 1, 2)
 
 
-def sort_buffer(keys: list, files: list):
-    tamanho = len(keys)
-    if tamanho <= 1:
-        return keys, files
-    if tamanho == 2:
-        if keys[0] > keys[1]:
-            swap(keys, 0, 1)
-            swap(files, 0, 1)
-        return keys, files
-    if keys[0] > keys[1]:
-        swap(keys, 0, 1)
-        swap(files, 0, 1)
-    if keys[0] > keys[2]:
-        swap(keys, 0, 2)
-        swap(files, 0, 2)
-    if keys[1] > keys[2]:
-        swap(keys, 1, 2)
-        swap(files, 1, 2)
+def order_keys(input_list: list):
+    size = len(input_list)
+    if size <= 1:
+        return input_list
+    if size == 2:
+        if input_list[0].value > input_list[1].value:
+            return [input_list[1], input_list[0]]
+
+        return input_list
+
+    if input_list[0].value > input_list[1].value:
+        swap(input_list, 0, 1)
+    if input_list[0].value > input_list[2].value:
+        swap(input_list, 0, 2)
+    if input_list[1].value > input_list[2].value:
+        swap(input_list, 1, 2)
+
 
 
 def clear_folder(folder: str):
@@ -69,19 +70,17 @@ if __name__ == '__main__':
 
     with open('entrada.txt') as f:
         list_aux = []
-        ordered_lists = []
         file_handles = [
             open(f'{results_folder}/fita1.txt', 'w'),
             open(f'{results_folder}/fita2.txt', 'w'),
             open(f'{results_folder}/fita3.txt', 'w'),
-            open(f'{results_folder}/fita4.txt', 'w'),
-            open(f'{results_folder}/fita5.txt', 'w'),
-            open(f'{results_folder}/fita6.txt', 'w'),
+            open(f'{results_folder}/fita4.txt', 'w+'),
+            open(f'{results_folder}/fita5.txt', 'w+'),
+            open(f'{results_folder}/fita6.txt', 'w+'),
         ]
 
         i = 0
-        index = 0
-        for idx, line in enumerate(f):
+        for line in f:
             list_aux.append(int(line.strip()))
             if len(list_aux) % 3 != 0:
                 continue
@@ -94,39 +93,71 @@ if __name__ == '__main__':
             i += 1
 
         if len(list_aux) > 0:
-            write_to_file(file_handles[index % 3 + 1], list_aux)
-
-        # total de colunas na primeira passada
-        columns = ceil((idx+1) / 9)
+            write_to_file(file_handles[i % 3], list_aux)
 
         # Fecha todos arquivos, e ao mesmo tempo abre outro handle para leitura
         for i in range(3):
             file_handles[i].close()
             file_handles[i] = open(file_handles[i].name, 'r')
 
-    keys_buffer, files_buffer = [], []
-    current_file = 4
-    for col in range(columns):
-        count = 0
-        # pega uma chave de cada file (3 chaves)
-        for i in range(3):
-            key = next(file_handles[i], None)
-            keys_buffer.append(int(key.strip()))
-            files_buffer.append(i)
+        for fita in file_handles[3:]:
+            buffers = [[], [], []]
+            for i in range(3):
+                file = file_handles[i]
+                for j in range(3):
+                    line = file.readline()
+                    if line == '':
+                        continue
 
-        # FIXME: #2 Trocar numeros para variaveis como este nove a seguir
-        while count < 9:
-            sort_buffer(keys_buffer, files_buffer)
-            print(f"current_file: {current_file}, count: {count}, keys: {keys_buffer}, files:{files_buffer}")
-            write_to_file(file_handles[current_file], list([keys_buffer[0]]))
+                    buffers[i].append(Line(line, i + 1))
 
-            # retorna a proxima chave do arquivo contendo a atual menor chave
-            key = next(file_handles[files_buffer[0]], None)
-            if key:
-                keys_buffer[0] = int(key.strip())
-                count += 1
+            keys = []
+            while True:
+                if len(buffers[0]) == 0 and len(buffers[1]) == 0 and len(buffers[2]) == 0: break
 
-            keys_buffer.clear(), files_buffer.clear()
-            break
+                for i in reversed(range(3)):
+                    if len(buffers[i]) == 0:
+                        continue
 
-        current_file += 1
+                    keys.append(buffers[i][0])
+
+                order_keys(keys)
+                line = keys[0]
+                write_to_file(fita, [line.value])
+                keys.clear()
+                buffers[line.fita - 1].pop(0)
+
+        # Fecha todos arquivos, e ao mesmo tempo abre outro handle para leitura
+        for i in range(6):
+            file_handles[i].close()
+
+        for i in range(3,6):
+            file_handles[i] = open(file_handles[i].name, 'r')
+
+        fita = open(file_handles[0].name, 'w')
+
+        buffers = [[], [], []]
+        for i in range(3, 6):
+            file = file_handles[i]
+            while True:
+                line = file.readline()
+                if line == '':
+                    break
+
+                buffers[i-3].append(Line(line, i + 1))
+
+        keys = []
+        while True:
+            if len(buffers[0]) == 0 and len(buffers[1]) == 0 and len(buffers[2]) == 0: break
+
+            for i in reversed(range(3)):
+                if len(buffers[i]) == 0:
+                    continue
+
+                keys.append(buffers[i][0])
+
+            order_keys(keys)
+            line = keys[0]
+            write_to_file(fita, [line.value])
+            keys.clear()
+            buffers[line.fita - 6].pop(0)
