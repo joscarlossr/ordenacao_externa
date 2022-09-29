@@ -1,14 +1,13 @@
 import os
 import shutil
 from typing import IO
-from math import ceil
 
 from line import Line
 
 
 def swap(input_list: list, first_index: int, second_index: int):
     """
-    Troca as posições de um elemento dentro de uma array, por outra
+    Troca elementos de posição numa lista
     """
     val_primeiro = input_list[first_index]
     val_segundo = input_list[second_index]
@@ -54,7 +53,6 @@ def order_keys(input_list: list):
         swap(input_list, 1, 2)
 
 
-
 def clear_folder(folder: str):
     """
     Método utilizado para limpar uma pasta
@@ -80,29 +78,26 @@ def write_to_file(handle: IO, input_list: list):
 
 def sort_buffer_manually(buffer):
     """
-    Método utilizado para ordenar o buffer final, manualmente, gambiarra
+    Método utilizado para ordenar o buffer final manualmente
     """
     ordered = []
-    i = 0
+    pos = 0
     lowest = buffer[0]
 
     while len(buffer) > 0:
-        if  buffer[i] < lowest:
-            lowest = buffer[i]
-        i += 1
-        if i == len(buffer):
+        if buffer[pos] < lowest:
+            lowest = buffer[pos]
+        pos += 1
+        if pos == len(buffer):
             ordered.append(lowest)
             buffer.remove(lowest)
             if buffer:
-              lowest = buffer[0]
-            i = 0
+                lowest = buffer[0]
+            pos = 0
     
     return ordered
 
 
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     results_folder = './resultados'
     # Limpa a pasta de resultados
@@ -113,7 +108,7 @@ if __name__ == '__main__':
         list_aux = []
 
         # Abre os arquivos de fita
-        file_handles = [
+        file_handlers = [
             open(f'{results_folder}/fita1.txt', 'w'),
             open(f'{results_folder}/fita2.txt', 'w'),
             open(f'{results_folder}/fita3.txt', 'w'),
@@ -131,24 +126,24 @@ if __name__ == '__main__':
 
             order_list(list_aux)
             index = i % 3
-            write_to_file(file_handles[index], list_aux)
+            write_to_file(file_handlers[index], list_aux)
 
             list_aux.clear()
             i += 1
 
         # Caso tenha esquecido de escrever algum dado, vai e escreve na próxima fita
         if len(list_aux) > 0:
-            write_to_file(file_handles[i % 3], list_aux)
+            write_to_file(file_handlers[i % 3], list_aux)
 
         # Fecha todos arquivos, e ao mesmo tempo abre outro handle para leitura
         for i in range(3):
-            file_handles[i].close()
-            file_handles[i] = open(file_handles[i].name, 'r')
+            file_handlers[i].close()
+            file_handlers[i] = open(file_handlers[i].name, 'r')
 
-        for fita in file_handles[3:]:
+        for fita in file_handlers[3:]:
             buffers = [[], [], []]
             for i in range(3):
-                file = file_handles[i]
+                file = file_handlers[i]
                 for j in range(3):
                     line = file.readline()
                     if line == '':
@@ -158,7 +153,9 @@ if __name__ == '__main__':
 
             keys = []
             while True:
-                if len(buffers[0]) == 0 and len(buffers[1]) == 0 and len(buffers[2]) == 0: break
+                if len(buffers[0]) == 0 and len(buffers[1]) == 0 \
+                        and len(buffers[2]) == 0:
+                    break
 
                 for i in reversed(range(3)):
                     if len(buffers[i]) == 0:
@@ -174,16 +171,16 @@ if __name__ == '__main__':
 
         # Fecha todos arquivos, e ao mesmo tempo abre outro handle para leitura
         for i in range(6):
-            file_handles[i].close()
+            file_handlers[i].close()
 
-        for i in range(3,6):
-            file_handles[i] = open(file_handles[i].name, 'r')
+        for i in range(3, 6):
+            file_handlers[i] = open(file_handlers[i].name, 'r')
 
-        fita = open(file_handles[0].name, 'w')
+        fita = open(file_handlers[0].name, 'w')
 
         buffer = []
         for i in range(3, 6):
-            file = file_handles[i]
+            file = file_handlers[i]
             while True:
                 line = file.readline()
                 if line == '':
